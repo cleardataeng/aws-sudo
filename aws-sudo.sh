@@ -5,7 +5,7 @@ set -e
 # setup default values
 cfg_file="$HOME/.aws-sudo"
 
-duration=43200
+duration=3600
 
 # parse command line
 while [ "$#" -gt 0 ]; do
