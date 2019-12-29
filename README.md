@@ -82,3 +82,12 @@ CloudTrail.  Add a line like this to `~/.aws-sudo`:
 ```
 default session_name anarchy-burger
 ```
+
+Choose a specific region
+-----
+
+You can pass a specific region using the `-r` flag.
+
+```
+$(aws-sudo.sh arn:aws:iam::123456789012:role/MyCoolRole -r us-east-2)
+```

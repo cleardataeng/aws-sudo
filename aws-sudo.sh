@@ -16,6 +16,7 @@ while [ "$#" -gt 0 ]; do
         -f) cfg_file="$2"; shift 2;;
         -p) profile="$2"; shift 2;;
         -d) duration="$2"; shift 2;;
+        -r) region="$2"; shift 2;;
         -h)
             cat 1>&2 <<EOF
 $(basename "$0") [-n sess_name] [-c command] [-x] [-f cfg_file] [-p profile] argument
@@ -30,6 +31,7 @@ optional args:
   -f cfg_file	Override config file for defaults and aliases
   -p profile	Use a non-default AWS profile when calling STS
   -d duration   Session duration 12 hours default
+  -r region Chooese a specific region
 
 positional args:
   argument:	Must be one of:
@@ -91,6 +93,11 @@ if ! [[ "$role" =~ arn:aws:iam::[0-9]{12}:role/ ]]; then
     exit 1
 fi
 
+# If no region, unexport it
+if [ -z "$region" ]; then
+    region=''
+fi
+
 response=$(aws ${profile:+--profile $profile} \
                sts assume-role --output text \
                --role-arn "$role" \
@@ -103,10 +110,12 @@ if [ -n "$command" ]; then
         AWS_ACCESS_KEY_ID=$(echo $response | awk '{print $1}') \
         AWS_SECRET_ACCESS_KEY=$(echo $response | awk '{print $3}') \
         AWS_SESSION_TOKEN=$(echo $response | awk '{print $4}') \
+        AWS_DEFAULT_REGION=$region
         bash -c "$command"
 else
     echo export \
          AWS_ACCESS_KEY_ID=$(echo $response | awk '{print $1}') \
          AWS_SECRET_ACCESS_KEY=$(echo $response | awk '{print $3}') \
-         AWS_SESSION_TOKEN=$(echo $response | awk '{print $4}')
+         AWS_SESSION_TOKEN=$(echo $response | awk '{print $4}') \
+         AWS_DEFAULT_REGION=$region
 fi
