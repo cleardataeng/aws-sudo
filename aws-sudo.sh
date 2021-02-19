@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 set -e
 
@@ -41,14 +41,14 @@ EOF
 done
 
 # handle unset requests and exit
-if [[ "$argument" = "clear" || "$clear" = "1" ]]
+if [ "$argument" = "clear" ] || [ "$clear" = "1" ]
 then
 	echo "unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SECURITY_TOKEN AWS_SESSION_TOKEN"
 	exit
 fi
 
 # if the arg doesn't look like an arn, check for aliases
-if [[ "$argument" =~ arn:aws:iam::[0-9]{12}:role/ ]]; then
+if echo "$argument" | grep -E 'arn:aws:iam::[0-9]{12}:role/' > /dev/null; then
     role="$argument"
 else
     if [ -r $cfg_file ]; then
@@ -62,7 +62,7 @@ fi
 
 # if argument is an aws account number, look for a default role name
 # in the config.  If found, build the role arn using that default
-if [[ -z "$role" && "$argument" =~ ^[0-9]{12}$ ]]; then
+if [ -z "$role" ] && echo "$argument" | grep -E '^[0-9]{12}$' > /dev/null; then
        def_role_name=$(grep "^default role " $cfg_file 2> /dev/null | awk '{print $3}' | head -n 1)
        if [ -n "$def_role_name" ]; then
            role="arn:aws:iam::${argument}:role/${def_role_name}"
@@ -82,7 +82,7 @@ fi
 
 # verify that a valid role arn was found or provided; awscli gives
 # terrible error messages if you try to assume some non-arn junk
-if ! [[ "$role" =~ arn:aws:iam::[0-9]{12}:role/ ]]; then
+if ! echo "$role" | grep -E 'arn:aws:iam::[0-9]{12}:role/' > /dev/null; then
     echo "$argument is neither a role ARN nor a configured alias" 1>&2
     exit 1
 fi
@@ -98,7 +98,7 @@ if [ -n "$command" ]; then
         AWS_ACCESS_KEY_ID=$(echo $response | awk '{print $1}') \
         AWS_SECRET_ACCESS_KEY=$(echo $response | awk '{print $3}') \
         AWS_SESSION_TOKEN=$(echo $response | awk '{print $4}') \
-        bash -c "$command"
+        sh -c "$command"
 else
     echo export \
          AWS_ACCESS_KEY_ID=$(echo $response | awk '{print $1}') \
